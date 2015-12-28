@@ -25,14 +25,26 @@ tank.ioListen = function(){
     this.io.on('connection',function(socket){
       that.addplayer(socket);
       that.tankmove(socket);
+      that.tankrotation(socket);
       that.disconnect(socket);
+      that.tankshoot(socket);
+  })
+}
+
+tank.tankshoot = function(socket){
+  var that = this;
+  socket.on('SendFireInfo',function(msg){
+    console.log(that.userName[socket.id]+'shoot');
+    socket.broadcast.emit('ReciveFire',{
+      name:that.userName[socket.id]
+    });
   })
 }
 
 tank.addplayer = function(socket){
   var that = this;
   socket.on('create player',function(msgs){
-    console.log(that.usedName.indexOf(msgs.name));
+
     if (that.usedName.indexOf(msgs.name) === -1) {
       console.log('that.usedName'+that.usedName);
       var nameIndex = that.usedName.indexOf(that.userName[socket.id]);
@@ -41,11 +53,15 @@ tank.addplayer = function(socket){
       that.usedName[nameIndex] = msgs.name;
       var msg = msgs.name + 'enter the room! Welcome!';
       console.log(msg);
+      socket.broadcast.emit('new user', {
+        name:msgs.name,
+        color:msgs.color
+      });
       socket.emit('new user', {
         name:msgs.name,
         color:msgs.color
       });
-      console.log('emit user');
+      console.log(that.userName);
     }else {
       console.log('名字已经被使用');
       socket.emit('sys message',{
@@ -58,7 +74,7 @@ tank.addplayer = function(socket){
 
 tank.tankrotation = function(socket){
   socket.on('rotation',function(data){
-    socket.emit('PlayerRotato',{
+    socket.broadcast.emit('PlayerRotato',{
         name : data.name,
         Positiony : data.y
     });
@@ -66,8 +82,9 @@ tank.tankrotation = function(socket){
 }
 
 tank.tankmove = function(socket){
+  var that = this;
   socket.on('move', function (data){
-      socket.emit('PlayerMove', {
+      socket.broadcast.emit('PlayerMove', {
           name : data.name,
           Position : data.position
       });
@@ -80,8 +97,10 @@ tank.disconnect = function(socket){
   var that = this;
   socket.on('disconnect',function(){
     var msg = that.userName[socket.id] + 'just left';
-
-    socket.emit('exit user',msg);
+    console.log(msg);
+    socket.broadcast.emit('exit user',{
+      name:that.userName[socket.id]
+    });
 
     var nameIndex = that.usedName.indexOf(that.userName[socket.id]);
 
