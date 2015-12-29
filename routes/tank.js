@@ -44,6 +44,13 @@ tank.tankshoot = function(socket){
 tank.addplayer = function(socket){
   var that = this;
   socket.on('create player',function(msgs){
+    for(var p in tank.userName){
+      socket.emit('new user', {
+        name:msgs.name,
+        color:msgs.color,
+        enemy:true
+      });
+     }
 
     if (that.usedName.indexOf(msgs.name) === -1) {
       console.log('that.usedName'+that.usedName);
@@ -55,11 +62,13 @@ tank.addplayer = function(socket){
       console.log(msg);
       socket.broadcast.emit('new user', {
         name:msgs.name,
-        color:msgs.color
+        color:msgs.color,
+        enemy:true
       });
       socket.emit('new user', {
         name:msgs.name,
-        color:msgs.color
+        color:msgs.color,
+        enemy:false
       });
       console.log(that.userName);
     }else {
