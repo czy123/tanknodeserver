@@ -28,6 +28,18 @@ tank.ioListen = function(){
       that.tankrotation(socket);
       that.disconnect(socket);
       that.tankshoot(socket);
+      that.tanklife(socket);
+  })
+}
+
+tank.tanklife = function(socket){
+  var that =this;
+  socket.on('ReciveLife',function(msg){
+    console.log(msg);
+    socket.broadcast.emit('enemylife',{
+      ismytank:msg.ismytank,
+      damagelife:msg.damagelife
+    });
   })
 }
 
