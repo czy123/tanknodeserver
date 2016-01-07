@@ -32,12 +32,23 @@ tank.ioListen = function(){
   })
 }
 
+//聊天消息
+tank.Chatmessage = function(socket){
+   socket.on('Player Message',function(msg){
+     console.log(msg.message);
+     socket.broadcast.emit('OtherTankMessage',{
+       name:msg.name,
+       message:msg.message
+     });
+   })
+}
+
 tank.tanklife = function(socket){
   var that =this;
   socket.on('ReciveLife',function(msg){
-    console.log(msg);
+    console.log(msg.tankname);
     socket.broadcast.emit('enemylife',{
-      ismytank:msg.ismytank,
+      ismytank:msg.tankname,
       damagelife:msg.damagelife
     });
   })
@@ -46,7 +57,7 @@ tank.tanklife = function(socket){
 tank.tankshoot = function(socket){
   var that = this;
   socket.on('SendFireInfo',function(msg){
-    console.log(that.userName[socket.id]+'shoot');
+    // console.log(that.userName[socket.id]+'shoot');
     socket.broadcast.emit('ReciveFire',{
       name:that.userName[socket.id]
     });
@@ -56,6 +67,7 @@ tank.tankshoot = function(socket){
 tank.addplayer = function(socket){
   var that = this;
   socket.on('create player',function(msgs){
+    console.log(msgs.color);
     for(var p in tank.userName){
       socket.emit('new user', {
         name:msgs.name,
@@ -70,19 +82,20 @@ tank.addplayer = function(socket){
       that.usedName.push(msgs.name);
       that.userName[socket.id] = msgs.name;
       that.usedName[nameIndex] = msgs.name;
-      var msg = msgs.name + 'enter the room! Welcome!';
+      var msg = msgs.name + 'enter the room! Welcome!'+msgs.color;
       console.log(msg);
       socket.broadcast.emit('new user', {
         name:msgs.name,
         color:msgs.color,
         enemy:true
       });
+      console.log(that.userName);
       socket.emit('new user', {
         name:msgs.name,
         color:msgs.color,
         enemy:false
       });
-      console.log(that.userName);
+
     }else {
       console.log('名字已经被使用');
       socket.emit('sys message',{
@@ -95,6 +108,7 @@ tank.addplayer = function(socket){
 
 tank.tankrotation = function(socket){
   socket.on('rotation',function(data){
+    // console.log(data.y);
     socket.broadcast.emit('PlayerRotato',{
         name : data.name,
         Positiony : data.y
@@ -128,7 +142,6 @@ tank.disconnect = function(socket){
     delete that.userName[socket.id];
     delete that.usedName[nameIndex];
 
-    delete that.currentRoom[socket.id];
   });
 }
 
